@@ -1,0 +1,170 @@
+#include<stdio.h>
+#include<stdlib.h>
+#define MIN -9999
+typedef struct Edge
+{
+	int src;
+	int dest;
+	int weight;
+}edge;
+typedef struct Graph
+{
+	int V,E;
+	edge *x;
+}graph;
+typedef struct Subset
+{
+	int parent;
+	int rank;
+}subset;
+void swap(edge *a,edge *b)
+{
+	edge temp;
+	temp=*a;
+	*a=*b;
+	*b=temp;
+}
+int partition(edge a[],int low,int high)
+{
+	int pindex=low;
+	int pivot=a[high].weight;
+	int b;
+	for(b=low;b<high;b++)
+	{
+		if(a[b].weight<=pivot)
+		{
+			swap(&a[b],&a[pindex]);
+			pindex=pindex+1;
+		}
+	}
+	swap(&a[high],&a[pindex]);
+	return(pindex);
+}
+void quicksort(edge a[],int low,int high)
+{
+	if(low>=high)
+	return;
+	int pivot=partition(a,low,high);
+	quicksort(a,low,pivot-1);
+	quicksort(a,pivot+1,high);
+}
+int find(subset s[],int x)
+{
+	if(s[x].parent!=x)
+	s[x].parent=find(s,s[x].parent);
+	return(s[x].parent);
+}
+void Union(subset s[],int x,int y)
+{
+	int xroot=find(s,x);
+	int yroot=find(s,y);
+	if(s[xroot].rank<s[yroot].rank)
+		s[xroot].parent=yroot;
+	else if(s[xroot].rank>s[yroot].rank)
+		s[yroot].parent=xroot;
+	else
+	{
+		s[yroot].parent=xroot;
+		s[xroot].rank++;
+	}
+}
+int Kruskal(graph *g)
+{
+	quicksort(g->x,0,g->E-1);
+	int v=g->V;
+	int i=0,e=0;
+	edge tree[v-1];
+	//creating the subset
+	int a;
+	subset S[v];
+	for(a=0;a<v;a++)
+	{
+		S[a].parent=a;
+		S[a].rank=0;
+	}
+	while(e<v-1)
+{
+	int y=find(S,g->x[i].src);
+	int z=find(S,g->x[i].dest);
+if(y==z)
+{
+	i++;
+	continue;
+}	
+	else
+	{
+		Union(S,y,z);
+		tree[e]=g->x[i];
+		i++;
+		e++;
+	}
+}
+int cost=0;
+for(i=0;i<e;i++)
+{
+	cost=cost+tree[i].weight;
+}
+return(cost);
+}
+int main()
+{
+	graph *g=NULL;
+	
+/*
+int a;
+g->x[0].src=0;
+g->x[0].dest=1;
+g->x[0].weight=10;
+ 
+g->x[1].src=0;
+g->x[1].dest=2;
+g->x[1].weight=6;
+ 
+g->x[2].src=0;
+g->x[2].dest=3;
+g->x[2].weight=5;
+ 
+g->x[3].src=1;
+g->x[3].dest=3;
+g->x[3].weight=15;
+ 
+g->x[4].src=2;
+g->x[4].dest=3;
+g->x[4].weight=4;*/
+long int t;
+long int a;
+int n,m;
+int u,v,c;
+scanf("%ld",&t);
+while(t!=0)
+{
+	g=(graph*)malloc(sizeof(graph));
+	scanf("%d%d",&n,&m);
+	g->V=n;
+	g->E=m;
+	g->x=(edge*)malloc(g->E*sizeof(edge));
+	for(a=0;a<m;a++)
+	{
+	scanf("%d%d",&u,&v);
+	g->x[a].src=u-1;
+	g->x[a].dest=v-1;
+	g->x[a].weight=0;
+	}
+	long int k;
+	scanf("%d",&k);
+	g->E=m+k;
+	g->x=realloc(g->x,g->E*sizeof(edge));
+	for(a=m;a<m+k;a++)
+	{
+		scanf("%d%d%d",&u,&v,&c);
+		g->x[a].src=u-1;
+	g->x[a].dest=v-1;
+	g->x[a].weight=c;
+	}
+	printf("%d\n",Kruskal(g));
+	free(g);
+	t--;
+}
+	return(0);
+}
+Language: C
